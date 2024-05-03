@@ -1,0 +1,96 @@
+pipeline {
+    agent any
+    
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    // Build the code using Maven
+                    bat 'mvn clean package'
+                }
+            }
+        }
+        
+        stage('Unit and Integration Tests') {
+            steps {
+                script {
+                    // Run unit tests
+                    bat 'mvn test'
+                    
+                    // Run integration tests
+                    // Assuming integration tests are separate Maven goal
+                    bat 'mvn integration-test'
+                }
+            }
+        }
+        
+        stage('Code Analysis') {
+            steps {
+                script {
+                    // Integrate code analysis tool - SonarQube
+                    // Execute SonarQube analysis
+                    // Assuming SonarQube scanner is installed and configured
+                    bat 'sonar-scanner'
+                }
+            }
+        }
+        
+        stage('Security Scan') {
+            steps {
+                script {
+                    // Perform security scan using OWASP ZAP
+                    // Assuming ZAP is installed and configured
+                    bat 'zap-cli --spider <target_url>'
+                    bat 'zap-cli --scan <target_url>'
+                }
+            }
+        }
+        
+        stage('Deploy to Staging') {
+            steps {
+                script {
+                    // Deploy the application to AWS EC2 instance
+                    // Assuming AWS CLI is configured
+                    bat 'aws ec2 deploy-to-staging'
+                }
+            }
+        }
+        
+        stage('Integration Tests on Staging') {
+            steps {
+                script {
+                    // Run integration tests on staging environment
+                    // Assuming test scripts are configured
+                    bat 'run_integration_tests_staging'
+                }
+            }
+        }
+        
+        stage('Deploy to Production') {
+            steps {
+                script {
+                    // Deploy the application to production server
+                    // Assuming AWS CLI is configured
+                    bat 'aws ec2 deploy-to-production'
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            // Send notification email with success status and logs
+            emailext subject: "Pipeline Successful",
+                     body: "The pipeline ran successfully.",
+                     to: "surajkuwar2108@gmail.com",
+                     attachLog: true
+        }
+        failure {
+            // Send notification email with failure status and logs
+            emailext subject: "Pipeline Failed",
+                     body: "The pipeline failed to complete.",
+                     to: "surajkuwar2108@gmail.com",
+                     attachLog: true
+        }
+    }
+}
